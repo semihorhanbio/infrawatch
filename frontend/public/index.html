@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraWatch Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .status-card { background: #2d2d2d; padding: 20px; border-radius: 8px; border-left: 4px solid #00ff88; }
+        .status-healthy { border-left-color: #00ff88; }
+        .status-warning { border-left-color: #ffaa00; }
+        .loading { text-align: center; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>InfraWatch - Infrastructure Monitoring</h1>
+            <p>Real-time system status dashboard</p>
+        </div>
+        
+        <div id="status-container" class="loading">Loading infrastructure status...</div>
+    </div>
+
+    <script>
+        async function loadInfrastructureStatus() {
+            try {
+                const response = await fetch('http://localhost:3001/api/infrastructure/status');
+                const data = await response.json();
+                
+                const container = document.getElementById('status-container');
+                container.innerHTML = `
+                    <div class="status-grid">
+                        ${data.services.map(service => `
+                            <div class="status-card status-healthy">
+                                <h3>${service.name}</h3>
+                                <p><strong>Status:</strong> ${service.status}</p>
+                                <p><strong>Uptime:</strong> ${service.uptime}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p style="text-align: center; margin-top: 20px; color: #888;">
+                        Last updated: ${new Date(data.timestamp).toLocaleString()}
+                    </p>
+                `;
+            } catch (error) {
+                document.getElementById('status-container').innerHTML = 
+                    '<p style="color: #ff4444;">Failed to load infrastructure status. Please check if backend is running.</p>';
+            }
+        }
+
+        // Load status on page load and refresh every 30 seconds
+        loadInfrastructureStatus();
+        setInterval(loadInfrastructureStatus, 30000);
+    </script>
+</body>
+</html>
